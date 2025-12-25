@@ -1,0 +1,304 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="theme-color" content="#1a1a2e">
+    <title> Dynamic's Forklift Monitor Pro</title>
+
+    <!-- Inter font for professional UI -->
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+
+    <link rel="manifest" href="manifest.json">
+    <link rel="stylesheet" href="styles.css">
+    <link rel="apple-touch-icon" href="icon.png">
+</head>
+<body>
+    <!-- Header -->
+    <header>
+        <div class="container">            <div class="brand">
+                <div class="brand-logo" aria-hidden="true">
+                    <!-- simple forklift mark -->
+                    <svg width="34" height="34" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                        <rect x="2" y="12" width="12" height="6" rx="1" fill="currentColor" />
+                        <rect x="14" y="8" width="6" height="4" rx="0.5" fill="currentColor" />
+                        <rect x="16" y="12" width="4" height="4" rx="0.5" fill="currentColor" />
+                        <rect x="4" y="18" width="3" height="3" rx="1" fill="currentColor" />
+                        <rect x="14" y="18" width="3" height="3" rx="1" fill="currentColor" />
+                    </svg>
+                </div>
+                <h1>Dynamic's Forklift Monitor</h1>
+            </div>
+            <div class="connection-status" id="connection-status">
+                <span class="status-dot offline"></span>
+                <span id="connection-text">Connecting...</span>
+            </div>
+            <div class="auth-actions">
+                <button id="logoutBtn" class="btn small">Logout</button>
+            </div>
+        </div>
+    </header>
+
+    <main class="container">
+        <script>
+            // Redirect to login if not authenticated
+            (function(){
+                try{
+                    const token = localStorage.getItem('monitor_token');
+                    if(!token){
+                        if(window.location.pathname !== '/login.html') window.location.href = '/login.html';
+                    }
+                }catch(e){/* ignore */}
+            })();
+        </script>
+        <!-- Safety Alert Banner -->
+        <div id="safety-banner" class="safety-banner hidden">
+            <span class="banner-icon">⚠️</span>
+            <span id="safety-message">System Normal</span>
+        </div>
+
+        <!-- Real-Time Data Grid -->
+        <section class="data-grid">
+            <!-- Load Card -->
+            <div class="card load-card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <rect x="2" y="12" width="12" height="6" rx="1" fill="currentColor" />
+                            <rect x="14" y="8" width="6" height="4" rx="0.5" fill="currentColor" />
+                            <rect x="16" y="12" width="4" height="4" rx="0.5" fill="currentColor" />
+                            <rect x="4" y="18" width="3" height="3" rx="1" fill="currentColor" />
+                            <rect x="14" y="18" width="3" height="3" rx="1" fill="currentColor" />
+                        </svg>
+                    </span>
+                    <h2>Load Lifted</h2>
+                </div>
+                <div class="card-body">
+                    <div class="primary-value" id="load-value">0.00</div>
+                    <div class="unit">kg</div>
+                    <div class="secondary-info">
+                        <span>Capacity: <strong id="swl-value">2500</strong> kg</span>
+                        <span id="load-percent">0%</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Lift Height -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <rect x="3" y="11" width="18" height="2" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                            <rect x="6" y="6" width="3" height="10" rx="0.8" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                        </svg>
+                    </span>
+                    <h2>Fork Position</h2>
+                </div>
+                <div class="card-body">
+                    <div class="primary-value" id="trolley-value">0.00</div>
+                    <div class="unit">m</div>
+                </div>
+            </div>
+
+            <!-- (Tilt removed) -->
+
+            <!-- Battery Status -->
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <rect x="2" y="6" width="18" height="12" rx="2" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                            <rect x="20" y="9" width="2" height="6" rx="0.5" fill="currentColor"/>
+                            <rect x="6" y="9" width="8" height="6" rx="0.5" fill="currentColor" opacity="0.12"/>
+                        </svg>
+                    </span>
+                    <h2>Battery</h2>
+                </div>
+                <div class="card-body">
+                    <div class="primary-value" id="wind-value">100</div>
+                    <div class="unit">%</div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Test Mode Status -->
+        <section class="test-mode-section">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <path d="M7 2v6a5 5 0 001 3l3 3v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round" stroke-linejoin="round"/>
+                            <path d="M14 2v4" stroke="currentColor" stroke-width="1.2" stroke-linecap="round"/>
+                        </svg>
+                    </span>
+                    <h2>Test Mode</h2>
+                    <div class="test-status-badge" id="test-status-badge">
+                        <span id="test-status-text">Not Started</span>
+                    </div>
+                </div>
+                <div class="card-body">
+                    <!-- Timer -->
+                    <div class="test-timer" id="test-timer-container">
+                        <div class="timer-display" id="test-timer">10:00</div>
+                        <div class="timer-label">Remaining</div>
+                    </div>
+
+                    <!-- Test Progress -->
+                    <div class="test-progress">
+                        <div class="test-item" id="test-ls1">
+                            <div class="test-icon">⬆️</div>
+                            <div class="test-label">Lift UP</div>
+                            <div class="test-indicator grey"></div>
+                        </div>
+                        <div class="test-item" id="test-ls2">
+                            <div class="test-icon">⬇️</div>
+                            <div class="test-label">Lift DOWN</div>
+                            <div class="test-indicator grey"></div>
+                        </div>
+                        <!-- Tilt tests removed -->
+                    </div>
+
+                    <!-- Warning Flash -->
+                    <div class="test-warning hidden" id="test-warning">
+                        ⚠️ Daily test not completed!
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Operations & Status -->
+        <section class="operations-grid">
+            <!-- Safety Status -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <path d="M12 3l7 3v5c0 5-4.5 9-7 10-2.5-1-7-5-7-10V6l7-3z" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                        </svg>
+                    </span>
+                    <h2>Safety</h2>
+                </div>
+                <div class="card-body">
+                    <div class="status-indicator" id="safety-status">
+                        <div class="status-light safe"></div>
+                        <div class="status-text">Safe</div>
+                    </div>
+                    <div class="status-badges">
+                        <div class="status-badge" id="overload-badge">
+                            <span>Overload</span>
+                            <span class="badge-status">OFF</span>
+                        </div>
+                        <div class="status-badge" id="bypass-badge">
+                            <span>Bypass</span>
+                            <span class="badge-status">OFF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Operations -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <circle cx="12" cy="12" r="3" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                            <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09a1.65 1.65 0 00-1-1.51 1.65 1.65 0 00-1.82.33l-.06.06A2 2 0 013.2 16.87l.06-.06a1.65 1.65 0 00.33-1.82 1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09c.7 0 1.26-.39 1.51-1A1.65 1.65 0 005 6.6l-.06-.06A2 2 0 017.87 3.2l.06.06c.5.5 1.2.65 1.82.33.7-.35 1.51-.35 2.21 0 .62.32 1.32.17 1.82-.33l.06-.06A2 2 0 0119.4 8.13l-.06.06c-.35.7-.35 1.51 0 2.21.32.62.17 1.32-.33 1.82l-.06.06z" stroke="currentColor" stroke-width="0.6" fill="none"/>
+                        </svg>
+                    </span>
+                    <h2>Operations</h2>
+                </div>
+                <div class="card-body">
+                    <div class="operation-indicators">
+                        <div class="operation-item" id="hoist-op">
+                            <span>⬆️ Lift</span>
+                            <span class="op-status">OFF</span>
+                        </div>
+                        <!-- Tilt operation removed -->
+                        <div class="operation-item" id="slew-op">
+                            <span>🚗 Drive</span>
+                            <span class="op-status">OFF</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Utilization -->
+            <div class="card status-card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <rect x="3" y="12" width="3" height="7" rx="0.5" fill="currentColor"/>
+                            <rect x="9" y="8" width="3" height="11" rx="0.5" fill="currentColor" opacity="0.9"/>
+                            <rect x="15" y="4" width="3" height="15" rx="0.5" fill="currentColor" opacity="0.7"/>
+                        </svg>
+                    </span>
+                    <h2>Utilization</h2>
+                </div>
+                <div class="card-body">
+                    <div class="utilization-display">
+                        <div class="util-time" id="util-time">0</div>
+                        <div class="util-label">minutes today</div>
+                    </div>
+                    <div class="util-status" id="util-status">
+                        <span class="status-dot"></span>
+                        <span>Inactive</span>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Daily Counters -->
+        <section class="counters-section">
+            <div class="card">
+                <div class="card-header">
+                    <span class="card-icon" aria-hidden="true">
+                        <svg viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg" focusable="false">
+                            <rect x="3" y="4" width="18" height="4" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                            <rect x="3" y="10" width="8" height="10" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                            <rect x="14" y="10" width="7" height="6" rx="1" stroke="currentColor" stroke-width="1.2" fill="none"/>
+                        </svg>
+                    </span>
+                    <h2>Daily Counters</h2>
+                    <span class="counter-date" id="counter-date">Today</span>
+                </div>
+                <div class="card-body">
+                    <div class="counters-grid">
+                        <div class="counter-item">
+                            <div class="counter-icon">⬆️</div>
+                            <div class="counter-label">Lift UP</div>
+                            <div class="counter-value" id="counter-hookup">0</div>
+                        </div>
+                        <div class="counter-item">
+                            <div class="counter-icon">⬇️</div>
+                            <div class="counter-label">Lift DOWN</div>
+                            <div class="counter-value" id="counter-hookdown">0</div>
+                        </div>
+                        <!-- Tilt counters removed -->
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- System Info -->
+        <section class="info-section">
+            <div class="info-card">
+                <span>Last Update: <strong id="last-update">--:--:--</strong></span>
+                <span>Status Word: <strong id="status-word">0x0000</strong></span>
+            </div>
+        </section>
+    </main>
+
+    <script src="app.js"></script>
+    <script>
+        // Logout handler
+        const logoutBtn = document.getElementById('logoutBtn');
+        if (logoutBtn) {
+            logoutBtn.addEventListener('click', () => {
+                localStorage.removeItem('monitor_token');
+                localStorage.removeItem('monitor_user');
+                window.location.href = '/login.html';
+            });
+        }
+    </script>
+</body>
+</html>
